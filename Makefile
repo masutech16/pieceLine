@@ -1,6 +1,8 @@
 SOURCES ?= $(shell find . -path "./vendor" -prune -o -type f -name "*.go" -print)
 
-pieceline: $(SOURCES)
+all: init build
+
+build: $(SOURCES)
 		go build -o app
 
 .PHONY: init
