@@ -16,4 +16,4 @@ app
 vendor/
 
 
-.config/
+.local/
