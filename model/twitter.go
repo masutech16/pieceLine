@@ -15,12 +15,6 @@ const (
 )
 
 type (
-	// TwitterClient ツイッターと通信するインターフェース
-	TwitterClient interface {
-		PostTweet(string) error
-		GetHomeTimeline() ([]*Tweet, error)
-	}
-
 	twitterClient struct {
 		api *anaconda.TwitterApi
 	}
@@ -39,33 +33,52 @@ type (
 	}
 )
 
-func (tc *twitterClient) PostTweet(status string) error {
-	_, err := tc.api.PostTweet(status, nil)
-	return err
+// PostTweet ツイートを投稿する
+func PostTweet(status string) (*Tweet, error) {
+	tw, err := client.api.PostTweet(status, nil)
+	if err != nil {
+		return nil, err
+	}
+	return formatTweet(tw), nil
 }
 
 // GetHomeTimeline Homeディレクトリのツイート最新20件を取得する
-func (tc *twitterClient) GetHomeTimeline() ([]*Tweet, error) {
-	tweets, err := tc.api.GetHomeTimeline(nil)
+func GetHomeTimeline() ([]*Tweet, error) {
+	tweets, err := client.api.GetHomeTimeline(nil)
 	if err != nil {
 		return nil, err
 	}
 	var val []*Tweet
 	for _, v := range tweets {
-		t := &Tweet{
-			Text:          v.FullText,
-			CreatedAt:     v.CreatedAt,
-			FavoriteCount: v.FavoriteCount,
-			Favorited:     v.Favorited,
-			RetweetCount:  v.RetweetCount,
-			Retweeted:     v.Retweeted,
-			UserID:        v.User.ScreenName,
-			DisplayName:   v.User.Name,
-			IconURL:       v.User.ProfileImageURL,
-		}
-		val = append(val, t)
+		val = append(val, formatTweet(v))
 	}
 	return val, nil
+}
+
+// FavTweet ツイートをふぁぼる
+func FavTweet(id int64) (*Tweet, error) {
+	tw, err := client.api.Favorite(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return formatTweet(tw), nil
+}
+
+// Retweet リツイートする
+func Retweet(id int64) (*Tweet, error) {
+	//trim_userはとりあえず常にtrueで
+	tw, err := client.api.Retweet(id, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return formatTweet(tw), nil
+}
+
+// Reply 指定したツイートにリプライを送る
+func Reply(id int64) (*Tweet, error) {
+	return nil, nil
 }
 
 // PostRequestToken /oauth/request_tokenにポストする
@@ -92,4 +105,19 @@ func PostRequestToken() error {
 	body, err := ioutil.ReadAll(resp.Body)
 	fmt.Print(string(body))
 	return nil
+}
+
+func formatTweet(raw anaconda.Tweet) *Tweet {
+	return &Tweet{
+		Text:          raw.FullText,
+		CreatedAt:     raw.CreatedAt,
+		FavoriteCount: raw.FavoriteCount,
+		Favorited:     raw.Favorited,
+		RetweetCount:  raw.RetweetCount,
+		Retweeted:     raw.Retweeted,
+		UserID:        raw.User.ScreenName,
+		DisplayName:   raw.User.Name,
+		IconURL:       raw.User.ProfileImageURL,
+	}
+
 }

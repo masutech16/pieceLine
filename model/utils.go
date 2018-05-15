@@ -19,8 +19,3 @@ func SetUp() {
 		api: _api,
 	}
 }
-
-// GetTwitterClient ツイッタークライアントを取得する
-func GetTwitterClient() TwitterClient {
-	return client
-}
