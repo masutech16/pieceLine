@@ -55,7 +55,19 @@ func Tweet(c echo.Context) error {
  *
  */
 func Retweet(c echo.Context) error {
-	return nil
+	var req struct {
+		ID int64 `json:"id"`
+	}
+	if err := c.Bind(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
+	}
+
+	tw, err := model.Retweet(req.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to retweet")
+	}
+
+	return c.JSON(http.StatusOK, tw)
 }
 
 // FavTweet PUT /twitter/favのハンドラ
@@ -66,16 +78,45 @@ func Retweet(c echo.Context) error {
  *
  */
 func FavTweet(c echo.Context) error {
-	return nil
+	var req struct {
+		ID int64 `json:"id"`
+	}
+	if err := c.Bind(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
+	}
+
+	tw, err := model.FavTweet(req.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to make favorite")
+	}
+
+	return c.JSON(http.StatusOK, tw)
 }
 
 // Reply POST /twitter/replyのハンドラ
 /*
- * @param {id: replyするtweetID}
+ * @param {id: replyするtweetID, status: ツイート内容}
  * 204: 成功。Retweetオブジェクトを返す
  * 401: 認証失敗
  *
  */
 func Reply(c echo.Context) error {
-	return nil
+	var req struct {
+		ID     int64  `json:"id"`
+		Status string `json:"status"`
+	}
+	if err := c.Bind(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
+	}
+
+	if len(req.Status) > 140 {
+		return echo.NewHTTPError(http.StatusBadRequest, "140 over!")
+	}
+
+	tw, err := model.PostTweet(req.Status)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to post tweet")
+	}
+
+	return c.JSON(http.StatusOK, tw)
 }
