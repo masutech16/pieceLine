@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/masutech16/pieceLine/model"
@@ -79,13 +80,18 @@ func Retweet(c echo.Context) error {
  */
 func FavTweet(c echo.Context) error {
 	var req struct {
-		ID int64 `json:"id"`
+		ID string `json:"id"`
 	}
-	if err := c.Bind(req); err != nil {
+
+	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
 	}
 
-	tw, err := model.FavTweet(req.ID)
+	id, err := strconv.Atoi(req.ID)
+	if err != nil {
+		return err
+	}
+	tw, err := model.FavTweet(int64(id))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to make favorite")
 	}
