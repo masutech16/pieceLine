@@ -16,4 +16,4 @@ app
 vendor/
 
 
-.local/
+start.sh
