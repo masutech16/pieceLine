@@ -10,7 +10,7 @@ var (
 	client = &twitterClient{}
 )
 
-// SetUp twitterクライアントを起動する。今のところは自分用
+// SetUp 接続用のクライアントを起動する。今のところは自分用
 func SetUp() {
 	anaconda.SetConsumerKey(os.Getenv("TWITTER_CONSUMER_KEY"))
 	anaconda.SetConsumerSecret(os.Getenv("TWITTER_CONSUMER_KEY_SECRET"))

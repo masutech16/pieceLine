@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
-	"github.com/masutech16/pieceLine/model"
+	"github.com/masutech16/pieceline/model"
 )
 
 // GetHomeTimeline GET /home のハンドラ
@@ -16,6 +16,7 @@ import (
 func GetHomeTimeline(c echo.Context) error {
 	tweets, err := model.GetHomeTimeline()
 	if err != nil {
+		c.Logger().Errorf("Failed to connect twitter: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, tweets)
@@ -42,6 +43,7 @@ func Tweet(c echo.Context) error {
 
 	tw, err := model.PostTweet(req.Status)
 	if err != nil {
+		c.Logger().Errorf("failed to post tweet: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to post tweet")
 	}
 
@@ -57,14 +59,20 @@ func Tweet(c echo.Context) error {
  */
 func Retweet(c echo.Context) error {
 	var req struct {
-		ID int64 `json:"id"`
-	}
-	if err := c.Bind(req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
+		ID string `json:"id"`
 	}
 
-	tw, err := model.Retweet(req.ID)
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
+	}
+	id, err := strconv.Atoi(req.ID)
 	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "ID should be integer")
+	}
+
+	tw, err := model.Retweet(int64(id))
+	if err != nil {
+		c.Logger().Errorf("failed to retweet: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to retweet")
 	}
 
@@ -86,13 +94,14 @@ func FavTweet(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
 	}
-
 	id, err := strconv.Atoi(req.ID)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "ID should be integer")
 	}
+
 	tw, err := model.FavTweet(int64(id))
 	if err != nil {
+		c.Logger().Errorf("failed to make favorite: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to make favorite")
 	}
 
@@ -108,19 +117,20 @@ func FavTweet(c echo.Context) error {
  */
 func Reply(c echo.Context) error {
 	var req struct {
-		ID     int64  `json:"id"`
+		ID     string `json:"id"`
 		Status string `json:"status"`
 	}
-	if err := c.Bind(req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "JSON format is wrong")
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "json format is wrong")
 	}
 
 	if len(req.Status) > 140 {
 		return echo.NewHTTPError(http.StatusBadRequest, "140 over!")
 	}
 
-	tw, err := model.PostTweet(req.Status)
+	tw, err := model.Reply(req.Status, req.ID)
 	if err != nil {
+		c.Logger().Errorf("failed to post tweet: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to post tweet")
 	}
 

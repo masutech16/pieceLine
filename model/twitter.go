@@ -67,6 +67,7 @@ func FavTweet(id int64) (*Tweet, error) {
 
 // Retweet リツイートする
 func Retweet(id int64) (*Tweet, error) {
+
 	//trim_userはとりあえず常にtrueで
 	tw, err := client.api.Retweet(id, true)
 	if err != nil {
@@ -77,8 +78,15 @@ func Retweet(id int64) (*Tweet, error) {
 }
 
 // Reply 指定したツイートにリプライを送る
-func Reply(id int64) (*Tweet, error) {
-	return nil, nil
+func Reply(status string, id string) (*Tweet, error) {
+	v := url.Values{}
+	v.Add("in_reply_to_status_id", id)
+	tw, err := client.api.PostTweet(status, v)
+	if err != nil {
+		return nil, err
+	}
+
+	return formatTweet(tw), nil
 }
 
 // PostRequestToken /oauth/request_tokenにポストする

@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/masutech16/pieceLine/model"
-	"github.com/masutech16/pieceLine/router"
+	"github.com/masutech16/pieceline/model"
+	"github.com/masutech16/pieceline/router"
 )
 
 func main() {
