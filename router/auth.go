@@ -52,10 +52,14 @@ func PostLogin(c echo.Context) error {
 // AuthorityCheck sessionを持っているかを確認する
 func AuthorityCheck(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, err := session.Get("session", c)
+		sess, err := session.Get("session", c)
 		if err != nil {
 			c.Logger().Errorf("an error occurred while　checking session: %v", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get session")
+		}
+		if sess.Values["name"] != model.Me.Name {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Name is doesn't match")
+
 		}
 		return next(c)
 	}
